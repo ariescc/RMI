@@ -1,40 +1,37 @@
 package com.ariescc.rmi.server;
 
+import com.ariescc.rmi.IRemoteMethod;
 import com.ariescc.rmi.RemoteMethod;
 
-import java.net.MalformedURLException;
-import java.rmi.Naming;
+import java.rmi.AlreadyBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 
-public class RMIServer {
+/**
+ * 创建 Server 并把对象注册到端口
+ */
+public class RmiServer {
 
     public static void main(String[] args) {
         try {
+            // 实例化远程对象，同时导出该对象
+            IRemoteMethod remoteMethod = new RemoteMethod();
 
-            String m_strName = "TheRMIExample";
+            // 获得本地 RMI 注册表对象
+            Registry registry = LocateRegistry.createRegistry(8081);
 
-            System.out.println("Server: Registering RMIExampleImpl as \"" + m_strName +"\"");
+            // 在注册表中绑定远程对象
+            registry.bind("hello", remoteMethod);
 
-            // 在端口 5678 声明一个注册表
-            Registry registry = LocateRegistry.createRegistry(5678);
-
-            // 创建 RemoteMethod 实体
-            RemoteMethod rmi = new RemoteMethod();
-
-            String StrName = "rmi://localhost:5678/TheRMIExample";
-
-            // 将 StrName 和 RemoteMethod 实体一起发到注册表中（StrName 在注册表中唯一
-            Naming.rebind(StrName, rmi);
-
-            System.out.println("Server: Ready...");
+            // 通告服务器端已准备好
+            System.out.println("System ready!");
 
         } catch (RemoteException e) {
-            System.out.println("Server: Failed to register RMIExampleImpl: " + e);
             e.printStackTrace();
-        } catch (MalformedURLException e) {
-            System.out.println("Server: Failed to register RMIExampleImpl: " + e);
+        } catch (AlreadyBoundException e) {
+            System.out.println("在向注册表中绑定时出现了问题，名字已被绑定了!"
+                    + e.getMessage());
             e.printStackTrace();
         }
     }
