@@ -12,9 +12,21 @@ public class RmiClient {
 
     public RmiClient() {}
 
+    /**
+     * @param args 可传入如下参数：
+     *             java RmiClient localhost 8081 register username password
+     *
+     *             java RmiClient localhost 8081 add jia 123456 other 2017-12-16 2017-12-17 meeting1
+     *
+     *             java RmiClient localhost 8081 query jia 123456 2017-12-16 2017-12-07
+     *
+     *             java RmiClient localhost 8081 delete jia 123456 1
+     *
+     *             java RmiClient localhost 8081 clear jia 123456
+     */
     public static void main(String[] args) {
 
-        System.out.println(args.length + " " + args[4] + " " + args[4].equals(Method.REGISTER.toString()) + " " + Method.REGISTER);
+//        System.out.println(args.length + " " + args[4] + " " + args[4].equals(Method.ADD.toString()) + " " + Method.REGISTER);
 
         if (args.length < 7) {
             System.out.println("Usage: command don't exist.");
@@ -96,7 +108,8 @@ public class RmiClient {
             IRemoteMethod stub = (IRemoteMethod) registry.lookup("hello");
 
             // 像在使用本地方法一样调用远程方法
-            stub.Add(args[5], args[6], args[7], args[8], args[9], args[10]);
+            System.out.println(stub.Add(args[5], args[6], args[7], args[8], args[9], args[10]));
+
 
         } catch (RemoteException e) {
             e.printStackTrace();
@@ -110,24 +123,22 @@ public class RmiClient {
 
         try {
 
-            System.out.println(args[2] + " " + Integer.parseInt(args[3]));
+//            System.out.println(args[2] + " " + Integer.parseInt(args[3]));
 
             // 获得运行 RmiRegister 服务的主机上的注册表
             Registry registry = LocateRegistry.getRegistry(args[2], Integer.parseInt(args[3]));
 
-            System.out.println(registry);
+//            System.out.println(registry);
 
             // 查询并获得远程对象的存根
             IRemoteMethod stub = (IRemoteMethod) registry.lookup("hello");
 
-            System.out.println(stub);
+//            System.out.println(stub);
 
-            System.out.println(args[5] + " " + args[6]);
+//            System.out.println(args[5] + " " + args[6]);
 
             // 像在使用本地方法一样调用远程方法
-            stub.Register(args[5], args[6]);
-
-            System.out.println("bingo");
+            System.out.println(stub.Register(args[5], args[6]));
 
         } catch (RemoteException e) {
             e.printStackTrace();
