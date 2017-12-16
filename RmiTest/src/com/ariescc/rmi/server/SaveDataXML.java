@@ -42,7 +42,7 @@ public class SaveDataXML {
         try {
 
             DocumentBuilder db = dbf.newDocumentBuilder();
-            Document doc = db.parse(userFile);
+            Document doc = db.parse(new File(meetingFile));
 
             // 创建一个会议的元素结点
             Element eltMeetObj = doc.createElement("MeetObj");
@@ -82,7 +82,7 @@ public class SaveDataXML {
             Transformer tf = tff.newTransformer();
 
             // 将 document 对象转化成 XML 文件
-            tf.transform(new DOMSource(doc), new StreamResult(new File("Meeting.xml")));
+            tf.transform(new DOMSource(doc), new StreamResult(new File(meetingFile)));
 
             tf.setOutputProperty(OutputKeys.INDENT, "yes");
 
