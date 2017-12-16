@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<Meeting>
+    <MeetObj>
+        <User1>jia</User1>
+        <Password>123456</Password>
+        <User2>other</User2>
+        <StartTime>2017-12-16</StartTime>
+        <EndTime>2017-12-17</EndTime>
+        <Title>meeting1</Title>
+    </MeetObj>
+</Meeting>
