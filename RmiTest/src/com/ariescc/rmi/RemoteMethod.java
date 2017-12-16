@@ -24,48 +24,58 @@ public class RemoteMethod extends UnicastRemoteObject implements IRemoteMethod {
     }
 
     @Override
-    public void Register(String username, String password) throws RemoteException {
+    public String Register(String username, String password) throws RemoteException {
 
         try {
-            saveDataXML.UserRegisterToXML(username, password);
 
             System.out.println("Successful!");
+
+            return saveDataXML.UserRegisterToXML(username, password);
 
         } catch (ParserConfigurationException e) {
             e.printStackTrace();
         } catch (TransformerException e) {
             e.printStackTrace();
         }
+
+        return "REGISTER 远程方法实现错误";
+
     }
 
     @Override
-    public void Add(String userOneName, String password, String userTwoName,
+    public String Add(String userOneName, String password, String userTwoName,
                     String startTime, String endTime, String title) throws RemoteException {
         try {
-            saveDataXML.MeetingCreateToXML(userOneName, password, userTwoName, startTime, endTime, title);
 
-            System.out.println("Successful!");
+            return saveDataXML.MeetingCreateToXML(userOneName, password, userTwoName,
+                    startTime, endTime, title);
+
         } catch (TransformerException e) {
             e.printStackTrace();
         } catch (ParserConfigurationException e) {
             e.printStackTrace();
         }
+
+        return "ADD 远程方法实现错误";
+
     }
 
     @Override
-    public void Query(String username, String password, String startTime,
+    public String Query(String username, String password, String startTime,
                       String endTime) throws RemoteException {
-
+        return "";
     }
 
     @Override
-    public void Delete(String username, String password, String meetingId) throws RemoteException {
+    public String Delete(String username, String password, String meetingId) throws RemoteException {
 
+        return "";
     }
 
     @Override
-    public void Clear(String username, String password) throws RemoteException {
+    public String Clear(String username, String password) throws RemoteException {
 
+        return "";
     }
 
 
