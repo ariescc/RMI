@@ -77,6 +77,15 @@ public class SaveDataXML {
             eltMeetObj.appendChild(eltEndTime);
             eltMeetObj.appendChild(eltTitle);
 
+            // 创建 Meeting.XML 文件
+            TransformerFactory tff = TransformerFactory.newInstance();
+            Transformer tf = tff.newTransformer();
+
+            // 将 document 对象转化成 XML 文件
+            tf.transform(new DOMSource(doc), new StreamResult(new File("Meeting.xml")));
+
+            tf.setOutputProperty(OutputKeys.INDENT, "yes");
+
 
         } catch (ParserConfigurationException e) {
             e.printStackTrace();
@@ -84,8 +93,11 @@ public class SaveDataXML {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
+        } catch (TransformerConfigurationException e) {
+            e.printStackTrace();
+        } catch (TransformerException e) {
+            e.printStackTrace();
         }
-
 
 
     }
@@ -110,7 +122,7 @@ public class SaveDataXML {
         // 将根元素 UserTable 添加到 document 中
         document.appendChild(meeting);
 
-        // 创建 UserTable.XML 文件
+        // 创建 Meeting.XML 文件
         TransformerFactory tff = TransformerFactory.newInstance();
         Transformer tf = tff.newTransformer();
 
@@ -133,12 +145,20 @@ public class SaveDataXML {
     public void UserRegisterToXML(String username, String password) throws ParserConfigurationException, TransformerException {
 
         File file = new File(userFile);
+
+        System.out.println(file.exists());
+
         // 如果 UserTable.xml 不存在
         if(!file.exists()) {
             initUserXML();
         }
 
+        System.out.println("update begin___");
+
+        // 添加一组新的用户节点
         updateUserTable(username, password);
+
+        System.out.println("update end___");
 
 
     }
@@ -155,7 +175,14 @@ public class SaveDataXML {
         try {
 
             DocumentBuilder db = dbf.newDocumentBuilder();
-            Document doc = db.parse(userFile);
+
+            Document doc = db.parse(new File(userFile));
+
+//            System.out.println(doc == null);
+
+//            System.out.println("doc: " + doc);
+
+            Element root = doc.getDocumentElement();
 
             // 创建一个用户的元素结点
             Element eltUser = doc.createElement("UserObj");
@@ -174,12 +201,28 @@ public class SaveDataXML {
             eltUser.appendChild(eltUserName);
             eltUser.appendChild(eltPassword);
 
+            root.appendChild(eltUser);
+
+            System.out.println(doc);
+
+            // 创建 Meeting.XML 文件
+            TransformerFactory tff = TransformerFactory.newInstance();
+            Transformer tf = tff.newTransformer();
+
+            // 将 document 对象转化成 XML 文件
+            tf.transform(new DOMSource(doc), new StreamResult(new File(userFile)));
+
+            tf.setOutputProperty(OutputKeys.INDENT, "yes");
 
         } catch (ParserConfigurationException e) {
             e.printStackTrace();
         } catch (SAXException e) {
             e.printStackTrace();
         } catch (IOException e) {
+            e.printStackTrace();
+        } catch (TransformerConfigurationException e) {
+            e.printStackTrace();
+        } catch (TransformerException e) {
             e.printStackTrace();
         }
 
