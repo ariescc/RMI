@@ -14,20 +14,22 @@ public class RmiClient {
 
     public static void main(String[] args) {
 
+        System.out.println(args.length + " " + args[4] + " " + args[4].equals(Method.REGISTER.toString()) + " " + Method.REGISTER);
+
         if (args.length < 7) {
             System.out.println("Usage: command don't exist.");
             System.exit(1);
         }
 
-        if (args.length == 7 && args[4].equals(Method.register)) {
+        if (args.length == 7 && args[4].equals(Method.REGISTER.toString())) {
             handleRegister(args);
-        } else if (args.length == 11 && args[4].equals(Method.add)) {
+        } else if (args.length == 11 && args[4].equals(Method.ADD.toString())) {
             handleAdd(args);
-        } else if (args.length == 9 && args[4].equals(Method.query)) {
+        } else if (args.length == 9 && args[4].equals(Method.QUERY.toString())) {
             handleQuery(args);
-        } else if (args.length == 8 && args[4].equals(Method.delete)) {
+        } else if (args.length == 8 && args[4].equals(Method.DELETE.toString())) {
             handleDelete(args);
-        } else if (args.length == 7 && args[4].equals(Method.clear)) {
+        } else if (args.length == 7 && args[4].equals(Method.CLEAR.toString())) {
             handleDelete(args);
         } else {
             System.out.println("Illegal command. Please check your input!");
@@ -108,14 +110,24 @@ public class RmiClient {
 
         try {
 
+            System.out.println(args[2] + " " + Integer.parseInt(args[3]));
+
             // 获得运行 RmiRegister 服务的主机上的注册表
             Registry registry = LocateRegistry.getRegistry(args[2], Integer.parseInt(args[3]));
+
+            System.out.println(registry);
 
             // 查询并获得远程对象的存根
             IRemoteMethod stub = (IRemoteMethod) registry.lookup("hello");
 
+            System.out.println(stub);
+
+            System.out.println(args[5] + " " + args[6]);
+
             // 像在使用本地方法一样调用远程方法
             stub.Register(args[5], args[6]);
+
+            System.out.println("bingo");
 
         } catch (RemoteException e) {
             e.printStackTrace();
