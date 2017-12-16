@@ -1,1 +1,11 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?><User><UserObj><UserName>jia</UserName><Password>123456</Password></UserObj><UserObj><UserName>jia</UserName><Password>123456</Password></UserObj></User>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<User>
+    <UserObj>
+        <UserName>jia</UserName>
+        <Password>123456</Password>
+    </UserObj>
+    <UserObj>
+        <UserName>other</UserName>
+        <Password>654321</Password>
+    </UserObj>
+</User>
