@@ -64,23 +64,19 @@ public class RemoteMethod extends UnicastRemoteObject implements IRemoteMethod {
     public String Query(String username, String password, String startTime,
                       String endTime) throws RemoteException {
 
-        try {
-            return saveDataXML.QueryMeetingFromXML(username, password, startTime, endTime);
-        }
-
-        return "Query 远程方法实现错误";
+        return saveDataXML.QueryMeetingFromXML(username, password, startTime, endTime);
     }
 
     @Override
     public String Delete(String username, String password, String meetingId) throws RemoteException {
 
-        return "";
+        return saveDataXML.DeleteMeetingFromXML(username, password, meetingId);
     }
 
     @Override
     public String Clear(String username, String password) throws RemoteException {
 
-        return "";
+        return saveDataXML.ClearMeetingFromXML(username, password);
     }
 
 
