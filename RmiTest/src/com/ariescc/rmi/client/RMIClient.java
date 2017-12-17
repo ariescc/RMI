@@ -18,7 +18,7 @@ public class RmiClient {
      *
      *             java RmiClient localhost 8081 add jia 123456 other 2017-12-16 2017-12-17 meeting1
      *
-     *             java RmiClient localhost 8081 query jia 123456 2017-12-16 2017-12-07
+     *             java RmiClient localhost 8081 query jia 123456 2017-12-16 2017-12-20
      *
      *             java RmiClient localhost 8081 delete jia 123456 1
      *
@@ -42,10 +42,33 @@ public class RmiClient {
         } else if (args.length == 8 && args[4].equals(Method.DELETE.toString())) {
             handleDelete(args);
         } else if (args.length == 7 && args[4].equals(Method.CLEAR.toString())) {
-            handleDelete(args);
+            handleClear(args);
         } else {
             System.out.println("Illegal command. Please check your input!");
             System.exit(1);
+        }
+
+
+    }
+
+    private static void handleClear(String[] args) {
+
+        try {
+
+            // 获得运行 RmiRegister 服务的主机上的注册表
+            Registry registry = LocateRegistry.getRegistry(args[2], Integer.parseInt(args[3]));
+
+            // 查询并获得远程对象的存根
+            IRemoteMethod stub = (IRemoteMethod) registry.lookup("hello");
+
+            // 像在使用本地方法一样调用远程方法
+            String response = stub.Clear(args[5], args[6]);
+
+            System.out.println(response);
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        } catch (NotBoundException e) {
+            e.printStackTrace();
         }
 
 
@@ -62,10 +85,9 @@ public class RmiClient {
             IRemoteMethod stub = (IRemoteMethod) registry.lookup("hello");
 
             // 像在使用本地方法一样调用远程方法
-            String response = stub.sayHello();
+            String response = stub.Delete(args[5], args[6], args[7]);
 
-            System.out.println("Response: " + response);
-
+            System.out.println(response);
         } catch (RemoteException e) {
             e.printStackTrace();
         } catch (NotBoundException e) {
@@ -85,9 +107,9 @@ public class RmiClient {
             IRemoteMethod stub = (IRemoteMethod) registry.lookup("hello");
 
             // 像在使用本地方法一样调用远程方法
-            String response = stub.sayHello();
+            String response = stub.Query(args[5], args[6], args[7], args[8]);
 
-            System.out.println("Response: " + response);
+            System.out.println(response);
 
         } catch (RemoteException e) {
             e.printStackTrace();
