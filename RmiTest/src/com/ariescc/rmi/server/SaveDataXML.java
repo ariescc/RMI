@@ -11,6 +11,9 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.File;
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class SaveDataXML {
 
@@ -18,6 +21,18 @@ public class SaveDataXML {
 
     String meetingFile = "Meeting.xml";
 
+    /**
+     * 创建会议写入XML中，首先判断 Meeting.xml 文件是否存在
+     * @param userOne 创建者
+     * @param password 创建者密码
+     * @param userTwo 参与者
+     * @param startTime 会议开始时间
+     * @param endTime 会议结束时间
+     * @param title 会议名称
+     * @return
+     * @throws TransformerException
+     * @throws ParserConfigurationException
+     */
     public String MeetingCreateToXML(String userOne, String password, String userTwo,
                                    String startTime, String endTime, String title)
             throws TransformerException, ParserConfigurationException {
@@ -32,6 +47,16 @@ public class SaveDataXML {
 
     }
 
+    /**
+     * 添加新建会议数据，修改 Meeting.xml 并保存数据
+     * @param userOne 创建者
+     * @param password 创建者密码
+     * @param userTwo 参与者
+     * @param startTime 会议开始时间
+     * @param endTime 会议结束时间
+     * @param title 会议名称
+     * @return
+     */
     private String updateMeetingTable(String userOne, String password, String userTwo,
                                     String startTime, String endTime, String title) {
 
@@ -171,6 +196,11 @@ public class SaveDataXML {
 
                 Node curNode = childNodes.item(i);
 
+                String userone = "";
+                String usertwo = "";
+                String st = "";
+                String ed = "";
+
                 if ("MeetingObj".equals(curNode.getNodeName())) {
 
                     // 获取 MeetingObj 下的所有子节点
@@ -180,19 +210,56 @@ public class SaveDataXML {
 
                         Node detail = nodeDetail.item(j);
 
-                        if ("User1".equals(detail.getNodeName())) {
-                            if (!userOne.equals(detail.getTextContent())
-                                    && !userTwo.equals(detail.getTextContent())) {
-                                break;
-                            } else {
 
+                        if ("User1".equals(detail.getNodeName())) {
+                            if (userOne.equals(detail.getTextContent())) {
+                                userone = detail.getTextContent();
                             }
+                        } else if ("User2".equals(detail.getNodeName())) {
+                            if (userTwo.equals(detail.getTextContent())) {
+                                usertwo = detail.getTextContent();
+                            }
+                        } else if ("StartTime".equals(detail.getNodeName())) {
+                            st = detail.getTextContent();
+                        } else if ("EndTime".equals(detail.getNodeName())) {
+                            ed = detail.getTextContent();
                         }
+
+                    }
+
+                    // 如果 userone 或者 usertwo 不为空，则判断时间是否冲突，冲突则结束
+                    if (!userone.equals("") || !usertwo.equals("")) {
+
+                        // 时间比较
+                        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+
+                        // 新建会议的开始时间
+                        Date beginTimeCreate = sdf.parse(startTime);
+
+                        // 已存在的会议的开始时间
+                        Date beginTimeExist = sdf.parse(st);
+
+                        // 新建会议的结束时间
+                        Date endTimeCreate = sdf.parse(endTime);
+
+                        // 已存在的会议的结束时间
+                        Date endTimeExist = sdf.parse(ed);
+
+                        // 新建会议开始时间 < 已存在会议结束时间
+                        // 新建会议结束时间 > 已存在会议的开始时间
+                        // 会议时间冲突，返回 false
+                        if (beginTimeCreate.before(endTimeExist)
+                                && beginTimeExist.before(endTimeCreate)) {
+                            return false;
+                        }
+
                     }
 
                 }
-
             }
+
+            // 所有的 Meeting 均不存在冲突
+            return true;
 
         } catch (ParserConfigurationException e) {
             e.printStackTrace();
@@ -200,8 +267,13 @@ public class SaveDataXML {
             e.printStackTrace();
         } catch (SAXException e) {
             e.printStackTrace();
+        } catch (ParseException e) {
+            e.printStackTrace();
         }
 
+        System.out.println("程序错误！");
+
+        return false;
 
     }
 
@@ -361,8 +433,8 @@ public class SaveDataXML {
     /**
      * 注册新用户
      * 检查该用户名是否已存在，如果不存在创建成功
-     * @param username
-     * @param password
+     * @param username 用户名
+     * @param password 密码
      * @throws ParserConfigurationException
      * @throws TransformerException
      */
@@ -565,4 +637,33 @@ public class SaveDataXML {
 
     }
 
+
+    public String QueryMeetingFromXML(String username, String password, String startTime, String endTime) {
+
+        // 判断要查询的用户的用户名和密码是否正确
+        if (!judgeUserAvailable(username, password)) {
+            return "检查欲查询的用户名和密码是否正确！";
+        }
+
+        // 用户检查正确，查询该用户所有的会议
+
+        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+
+        try {
+            DocumentBuilder db = dbf.newDocumentBuilder();
+
+            Document doc = db.parse(new File(userFile));
+
+            Element root = doc.getDocumentElement();
+
+
+        } catch (ParserConfigurationException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (SAXException e) {
+            e.printStackTrace();
+        }
+
+    }
 }
