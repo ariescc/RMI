@@ -13,6 +13,9 @@ import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 
 public class SaveDataXML {
@@ -638,6 +641,14 @@ public class SaveDataXML {
     }
 
 
+    /**
+     * 通过用户名和密码以及会议的开始时间和结束时间查找在搜索时间区域内的会议
+     * @param username 用户名
+     * @param password 密码
+     * @param startTime 会议开始时间
+     * @param endTime 会议结束时间
+     * @return
+     */
     public String QueryMeetingFromXML(String username, String password, String startTime, String endTime) {
 
         // 判断要查询的用户的用户名和密码是否正确
@@ -647,15 +658,187 @@ public class SaveDataXML {
 
         // 用户检查正确，查询该用户所有的会议
 
+        ArrayList<Meeting> arrayList = new ArrayList<>();
+
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 
         try {
             DocumentBuilder db = dbf.newDocumentBuilder();
 
-            Document doc = db.parse(new File(userFile));
+            Document doc = db.parse(new File(meetingFile));
 
             Element root = doc.getDocumentElement();
 
+            NodeList childNodes = root.getChildNodes();
+
+            for (int i = 0; i < childNodes.getLength(); i++) {
+
+                // 获取每一个 MeetingObj 节点
+                Node curNode = childNodes.item(i);
+
+                String userone = "";
+                String usertwo = "";
+                String starttime = "";
+                String endtime = "";
+                String title = "";
+
+                NodeList nodeDetail = curNode.getChildNodes();
+
+                for (int j = 0; j < nodeDetail.getLength(); j++) {
+                    Node detail = nodeDetail.item(j);
+                    if ("User1".equals(detail.getNodeName())) {
+                        userone = detail.getTextContent();
+                    } else if ("User2".equals(detail.getNodeName())) {
+                        usertwo = detail.getTextContent();
+                    } else if ("StartTime".equals(detail.getNodeName())) {
+                        starttime = detail.getTextContent();
+                    } else if ("EndTime".equals(detail.getNodeName())) {
+                        endtime = detail.getTextContent();
+                    } else if ("Title".equals(detail.getNodeName())) {
+                        title = detail.getTextContent();
+                    }
+                }
+
+                if (username.equals(userone) || username.equals(usertwo)) {
+
+                    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+
+                    // 当前会议开始时间
+                    Date stExist = sdf.parse(starttime);
+
+                    // 当前会议结束时间
+                    Date edExist = sdf.parse(endtime);
+
+                    // 搜索时间（开始）
+                    Date stSearch = sdf.parse(startTime);
+
+                    // 搜索时间（结束）
+                    Date edSearch = sdf.parse(endTime);
+
+                    // 当前会议时间在搜索时间区域内，则满足条件
+                    if (stSearch.before(stExist) && edExist.before(edSearch)) {
+                        Meeting meeting = new Meeting(userone, usertwo, starttime, endtime, title);
+                        arrayList.add(meeting);
+                    }
+
+                }
+            }
+
+            // 如果搜索的用户的会议为空
+            if (arrayList.size() == 0) {
+                return "当前用户没有符合搜索要求的会议！";
+            }
+
+            // 遍历完所有的会议，将 Meeting 数组按照会议开始时间从前到后顺序排列
+            Collections.sort(arrayList, new Comparator<Meeting>() {
+                @Override
+                public int compare(Meeting o1, Meeting o2) {
+                    SimpleDateFormat sdf = new SimpleDateFormat();
+
+                    try {
+                        Date st1 = sdf.parse(o1.startTime);
+                        Date st2 = sdf.parse(o2.startTime);
+                        if (st1.before(st2)) {
+                            return 1;
+                        } else {
+                            return -1;
+                        }
+                    } catch (ParseException e) {
+                        e.printStackTrace();
+                    }
+
+                    System.out.println("排序错误！");
+
+                    return -1;
+                }
+            });
+
+            String response = "";
+
+            for (int k = 0; k < arrayList.size(); k++) {
+                response += arrayList.get(k).title + " " + arrayList.get(k).startTime + " " +
+                        arrayList.get(k).endTime + " " + arrayList.get(k).userOne + " " +
+                        arrayList.get(k).userTwo + "\n";
+            }
+
+            return response;
+
+        } catch (ParserConfigurationException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (SAXException e) {
+            e.printStackTrace();
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
+        return "程序错误";
+
+    }
+
+    /**
+     * 删除指定用户指定编号的会议
+     * @param username 用户名
+     * @param password 密码
+     * @param meetingId 会议编号
+     * @return
+     */
+    public String DeleteMeetingFromXML(String username, String password, String meetingId) {
+
+        // 判断用户是否合法
+        if (!judgeUserAvailable(username, password)) {
+            return "检查用户名和密码是否正确！";
+        }
+
+        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+
+        try {
+            DocumentBuilder db = dbf.newDocumentBuilder();
+
+            Document doc = db.parse(new File(meetingFile));
+
+            Element root = doc.getDocumentElement();
+
+            NodeList childNodes = root.getChildNodes();
+
+            int cnt = 0;
+
+            for (int i = 0; i < childNodes.getLength(); i++) {
+
+                cnt++;
+
+                // 找到当前会议序号
+                if (cnt == Integer.parseInt(meetingId)) {
+
+                    Node curNode = childNodes.item(i);
+
+                    NodeList nodeDetail = curNode.getChildNodes();
+
+                    for (int j = 0; j < nodeDetail.getLength(); j++) {
+
+                        Node detail = nodeDetail.item(j);
+
+                        if ("User1".equals(detail.getNodeName())) {
+                            // 如果用户为该会议的创建者
+                            if (username.equals(detail.getTextContent())) {
+
+                                // 删除该会议记录
+                                removeMeetingById(detail);
+
+                                return "会议删除成功！";
+
+                            } else {
+                                return "当前用户不是该会议的创建者，没有权限删除此会议";
+                            }
+                        }
+
+                    }
+                }
+
+            }
+
+            return "未找到指定编号的会议！";
 
         } catch (ParserConfigurationException e) {
             e.printStackTrace();
@@ -664,6 +847,100 @@ public class SaveDataXML {
         } catch (SAXException e) {
             e.printStackTrace();
         }
+
+        return "程序内部错误";
+
+    }
+
+    /**
+     * 删除指定编号的会议
+     * @param node 当前会议节点
+     */
+    private void removeMeetingById(Node node) {
+
+        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+
+        try {
+
+            DocumentBuilder db = dbf.newDocumentBuilder();
+
+            Document doc = db.parse(new File(meetingFile));
+
+            // 删除该节点
+            node.getParentNode().removeChild(node);
+
+            // 更新 Meeting.XML 文件
+            TransformerFactory tff = TransformerFactory.newInstance();
+            Transformer tf = tff.newTransformer();
+
+            // 将 document 对象转化成 XML 文件
+            tf.transform(new DOMSource(doc), new StreamResult(new File(meetingFile)));
+
+            tf.setOutputProperty(OutputKeys.INDENT, "yes");
+
+        } catch (ParserConfigurationException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (SAXException e) {
+            e.printStackTrace();
+        } catch (TransformerConfigurationException e) {
+            e.printStackTrace();
+        } catch (TransformerException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    public String ClearMeetingFromXML(String username, String password) {
+
+        // 判断是否为有效用户
+        if (!judgeUserAvailable(username, password)) {
+            return "检查用户名和密码是否正确！";
+        }
+
+        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+
+        try {
+            DocumentBuilder db = dbf.newDocumentBuilder();
+
+            Document doc = db.parse(new File(meetingFile));
+
+            Element root = doc.getDocumentElement();
+
+            NodeList childNodes = root.getChildNodes();
+
+            for (int i = 0; i < childNodes.getLength(); i++) {
+
+                Node curNode = childNodes.item(i);
+
+                NodeList nodeDetail = curNode.getChildNodes();
+
+                for (int j = 0; j < nodeDetail.getLength(); j++) {
+
+                    Node detail = nodeDetail.item(j);
+
+                    if ("User1".equals(detail.getNodeName())) {
+                        if (username.equals(detail.getTextContent())) {
+                            removeMeetingById(detail);
+                        }
+                    }
+
+                }
+
+            }
+
+            return "清空会议成功！";
+
+        } catch (ParserConfigurationException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (SAXException e) {
+            e.printStackTrace();
+        }
+
+        return "程序内部错误";
 
     }
 }
