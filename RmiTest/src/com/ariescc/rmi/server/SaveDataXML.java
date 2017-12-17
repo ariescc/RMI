@@ -66,8 +66,8 @@ public class SaveDataXML {
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 
         // 判断会议是否能够成功创建
-        if (judgeMeetingCreateOrNot(userOne, password, userTwo, startTime, endTime)) {
-
+        if (!judgeMeetingCreateOrNot(userOne, password, userTwo, startTime, endTime)) {
+            return "时间冲突，会议创建失败！";
         }
 
         try {
@@ -77,8 +77,11 @@ public class SaveDataXML {
 
             Element root1 = doc.getDocumentElement();
 
+            NodeList childNodes = root1.getChildNodes();
+
             // 创建一个会议的元素结点
             Element eltMeetObj = doc.createElement("MeetObj");
+            Element eltMeetingId = doc.createElement("MeetingId");
             Element eltUserOne = doc.createElement("User1");
             Element eltPassword = doc.createElement("Password");
             Element eltUserTwo = doc.createElement("User2");
@@ -87,6 +90,7 @@ public class SaveDataXML {
             Element eltTitle = doc.createElement("Title");
 
             // 创建会议信息的文本结点
+            Text txtMeetingId = doc.createTextNode(String.valueOf(childNodes.getLength() + 1));
             Text txtUserOne = doc.createTextNode(userOne);
             Text txtPassword = doc.createTextNode(password);
             Text txtUserTwo = doc.createTextNode(userTwo);
@@ -95,6 +99,7 @@ public class SaveDataXML {
             Text txtTitle = doc.createTextNode(title);
 
             // 将文本结点添加为对应元素结点的子节点
+            eltMeetingId.appendChild(txtMeetingId);
             eltUserOne.appendChild(txtUserOne);
             eltPassword.appendChild(txtPassword);
             eltUserTwo.appendChild(txtUserTwo);
@@ -103,6 +108,7 @@ public class SaveDataXML {
             eltTitle.appendChild(txtTitle);
 
             // 将 User1 和 User2 和 StartTime 和 EndTime 添加为 Meeting 的子节点
+            eltMeetObj.appendChild(eltMeetingId);
             eltMeetObj.appendChild(eltUserOne);
             eltMeetObj.appendChild(eltPassword);
             eltMeetObj.appendChild(eltUserTwo);
@@ -716,7 +722,10 @@ public class SaveDataXML {
                     Date edSearch = sdf.parse(endTime);
 
                     // 当前会议时间在搜索时间区域内，则满足条件
-                    if (stSearch.before(stExist) && edExist.before(edSearch)) {
+                    if ((stSearch.before(stExist) && edExist.before(edSearch))
+                            || (stSearch.equals(stExist) && edSearch.equals(edExist))
+                            || (stSearch.equals(stExist) && edExist.before(edSearch))
+                            || (stSearch.before(stExist) && edSearch.equals(edExist))) {
                         Meeting meeting = new Meeting(userone, usertwo, starttime, endtime, title);
                         arrayList.add(meeting);
                     }
@@ -802,81 +811,61 @@ public class SaveDataXML {
 
             NodeList childNodes = root.getChildNodes();
 
-            int cnt = 0;
-
             for (int i = 0; i < childNodes.getLength(); i++) {
 
-                cnt++;
-
                 // 找到当前会议序号
-                if (cnt == Integer.parseInt(meetingId)) {
 
-                    Node curNode = childNodes.item(i);
+                System.out.print(Integer.parseInt(meetingId) + " " + (i+1 == Integer.parseInt(meetingId)));
 
-                    NodeList nodeDetail = curNode.getChildNodes();
+                Node curNode = childNodes.item(i);
 
-                    for (int j = 0; j < nodeDetail.getLength(); j++) {
+                NodeList nodeDetail = curNode.getChildNodes();
 
-                        Node detail = nodeDetail.item(j);
 
-                        if ("User1".equals(detail.getNodeName())) {
-                            // 如果用户为该会议的创建者
-                            if (username.equals(detail.getTextContent())) {
+                System.out.println("bingo");
 
-                                // 删除该会议记录
-                                removeMeetingById(detail);
+                System.out.println(nodeDetail.getLength());
 
-                                return "会议删除成功！";
+                for (int j = 0; j < nodeDetail.getLength(); j++) {
 
-                            } else {
-                                return "当前用户不是该会议的创建者，没有权限删除此会议";
-                            }
+                    Node detail = nodeDetail.item(j);
+
+                    System.out.println("hahahah");
+
+                    System.out.println("User1".equals(detail.getNodeName()));
+
+                    if ("User1".equals(detail.getNodeName())) {
+                        // 如果用户为该会议的创建者
+
+                        if (username.equals(detail.getTextContent())) {
+                            // 删除该会议记录
+                            curNode.getParentNode().removeChild(curNode);
+
+                            // 更新 Meeting.XML 文件
+                            TransformerFactory tff = TransformerFactory.newInstance();
+                            Transformer tf = tff.newTransformer();
+
+                            // 将 document 对象转化成 XML 文件
+                            tf.transform(new DOMSource(doc), new StreamResult(new File(meetingFile)));
+
+                            tf.setOutputProperty(OutputKeys.INDENT, "yes");
+
+                            return "会议删除成功！";
+                        }
+
+                    } else if ("MeetingId".equals(detail.getNodeName())) {
+
+                        if (!meetingId.equals(detail.getTextContent())) {
+                            break;
                         }
 
                     }
+
                 }
 
             }
 
             return "未找到指定编号的会议！";
-
-        } catch (ParserConfigurationException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (SAXException e) {
-            e.printStackTrace();
-        }
-
-        return "程序内部错误";
-
-    }
-
-    /**
-     * 删除指定编号的会议
-     * @param node 当前会议节点
-     */
-    private void removeMeetingById(Node node) {
-
-        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-
-        try {
-
-            DocumentBuilder db = dbf.newDocumentBuilder();
-
-            Document doc = db.parse(new File(meetingFile));
-
-            // 删除该节点
-            node.getParentNode().removeChild(node);
-
-            // 更新 Meeting.XML 文件
-            TransformerFactory tff = TransformerFactory.newInstance();
-            Transformer tf = tff.newTransformer();
-
-            // 将 document 对象转化成 XML 文件
-            tf.transform(new DOMSource(doc), new StreamResult(new File(meetingFile)));
-
-            tf.setOutputProperty(OutputKeys.INDENT, "yes");
 
         } catch (ParserConfigurationException e) {
             e.printStackTrace();
@@ -890,8 +879,17 @@ public class SaveDataXML {
             e.printStackTrace();
         }
 
+        return "程序内部错误";
+
     }
 
+
+    /**
+     * 清空指定用户的所有会议
+     * @param username 用户名
+     * @param password 密码
+     * @return
+     */
     public String ClearMeetingFromXML(String username, String password) {
 
         // 判断是否为有效用户
@@ -922,7 +920,17 @@ public class SaveDataXML {
 
                     if ("User1".equals(detail.getNodeName())) {
                         if (username.equals(detail.getTextContent())) {
-                            removeMeetingById(detail);
+
+                            curNode.getParentNode().removeChild(curNode);
+
+                            // 更新 Meeting.XML 文件
+                            TransformerFactory tff = TransformerFactory.newInstance();
+                            Transformer tf = tff.newTransformer();
+
+                            // 将 document 对象转化成 XML 文件
+                            tf.transform(new DOMSource(doc), new StreamResult(new File(meetingFile)));
+
+                            tf.setOutputProperty(OutputKeys.INDENT, "yes");
                         }
                     }
 
@@ -937,6 +945,10 @@ public class SaveDataXML {
         } catch (IOException e) {
             e.printStackTrace();
         } catch (SAXException e) {
+            e.printStackTrace();
+        } catch (TransformerConfigurationException e) {
+            e.printStackTrace();
+        } catch (TransformerException e) {
             e.printStackTrace();
         }
 
