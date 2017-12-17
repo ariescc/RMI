@@ -8,4 +8,8 @@
         <UserName>other</UserName>
         <Password>654321</Password>
     </UserObj>
+    <UserObj>
+        <UserName>username</UserName>
+        <Password>password</Password>
+    </UserObj>
 </User>
