@@ -1,11 +1,39 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <Meeting>
     <MeetObj>
+        <MeetingId>1</MeetingId>
         <User1>jia</User1>
         <Password>123456</Password>
         <User2>other</User2>
+        <StartTime>2017-12-14</StartTime>
+        <EndTime>2017-12-15</EndTime>
+        <Title>meeting2</Title>
+    </MeetObj>
+    <MeetObj>
+        <MeetingId>4</MeetingId>
+        <User1>jia</User1>
+        <Password>123456</Password>
+        <User2>other1</User2>
         <StartTime>2017-12-16</StartTime>
         <EndTime>2017-12-17</EndTime>
-        <Title>meeting1</Title>
+        <Title>meeting3</Title>
+    </MeetObj>
+    <MeetObj>
+        <MeetingId>6</MeetingId>
+        <User1>jia</User1>
+        <Password>123456</Password>
+        <User2>other1</User2>
+        <StartTime>2017-12-18</StartTime>
+        <EndTime>2017-12-19</EndTime>
+        <Title>meeting4</Title>
+    </MeetObj>
+    <MeetObj>
+        <MeetingId>8</MeetingId>
+        <User1>jia</User1>
+        <Password>123456</Password>
+        <User2>other1</User2>
+        <StartTime>2017-12-20</StartTime>
+        <EndTime>2017-12-21</EndTime>
+        <Title>meeting5</Title>
     </MeetObj>
 </Meeting>
